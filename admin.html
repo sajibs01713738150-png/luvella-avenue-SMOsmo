@@ -137,14 +137,16 @@
 
 <script>
     // আপনার Firebase কনফিগারেশন কোড এখানে বসাবেন:
-    const firebaseConfig = {
-        apiKey: "আপনার_API_KEY_এখানে_বসান",
-        authDomain: "আপনার_PROJECT_://firebaseapp.com",
-        projectId: "আপনার_PROJECT_ID",
-        storageBucket: "আপনার_PROJECT_://appspot.com",
-        messagingSenderId: "আপনার_SENDER_ID",
-        appId: "আপনার_APP_ID"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCLUUQw6uLqGP-8RSRDUsGKTFi1wYnyM3A",
+    authDomain: "://firebaseapp.com",
+    projectId: "luvella-avenue-smo",
+    storageBucket: "luvella-avenue-smo.firebasestorage.app",
+    messagingSenderId: "781504317828",
+    appId: "1:781504317828:web:12d81b3ba4b591fe89f5d1",
+    measurementId: "G-17C1FDHR94"
+};
+
 
     const ADMIN_PIN = "1234"; // আপনার গোপন পিন
     let db = null;
@@ -152,12 +154,8 @@
     let selectedBase64Image = "";
     let allAdminProducts = [];
 
-    if (firebaseConfig.apiKey !== "আপনার_API_KEY_এখানে_বসান") {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-    } else {
-        useLocalFallback = true;
-    }
+
+
 
     function unlockAdmin() {
         const pin = document.getElementById('adminPinInput').value;
