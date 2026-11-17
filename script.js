@@ -208,11 +208,11 @@ function checkoutViaWhatsApp() {
 
     let orderDetails = `*নতুন অর্ডার - Luvella AVENUE*\n`;
     orderDetails += `----------------------------\n`;
-    orderDetails += `👤 *নাম:* ${name}\n`;
-    orderDetails += `📞 *মোবাইল:* ${phone}\n`;
-    orderDetails += `📍 *ঠিকানা:* ${address}\n`;
+    orderDetails += `নাম: ${name}\n`;
+    orderDetails += `মোবাইল: ${phone}\n`;
+    orderDetails += `ঠিকানা: ${address}\n`;
     orderDetails += `----------------------------\n`;
-    orderDetails += `🛍️ *অর্ডারকৃত প্রোডাক্টসমূহ:*\n`;
+    orderDetails += `অর্ডারকৃত প্রোডাক্টসমূহ:\n`;
 
     let grandTotal = 0;
     cart.forEach((item, index) => {
@@ -222,17 +222,17 @@ function checkoutViaWhatsApp() {
     });
 
     orderDetails += `----------------------------\n`;
-    orderDetails += `💰 *সর্বমোট বিল:* ${grandTotal}৳\n`;
-    orderDetails += `🚚 *পেমেন্ট:* ক্যাশ অন ডেলিভারি`;
+    orderDetails += `সর্বমোট বিল: ${grandTotal}৳\n`;
+    orderDetails += `পেমেন্ট: ক্যাশ অন ডেলিভারি`;
 
     const encodedMsg = encodeURIComponent(orderDetails);
-    const whatsappUrl = `https://wa.me{waNumber}?text=${encodedMsg}`;
+    const whatsappUrl = `https://whatsapp.com{waNumber}&text=${encodedMsg}`;
 
     cart = [];
     saveCartAndWishlist();
     closeModal('cartModal');
 
-    window.open(whatsappUrl, '_blank');
+    window.location.href = whatsappUrl;
 }
 
 function trackOrderWhatsApp() {
@@ -242,8 +242,9 @@ function trackOrderWhatsApp() {
         return;
     }
     const msg = encodeURIComponent(`আসসালামু আলাইকুম, আমি আমার অর্ডারটি ট্র্যাক করতে চাই।\nতথ্য: ${info}`);
-    window.open(`https://wa.me{msg}`, '_blank');
+    window.location.href = `https://whatsapp.com{msg}`;
 }
+
 
 // ================= ৬. উইশলিস্ট (Wishlist) =================
 function toggleWishlist(productId) {
