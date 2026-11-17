@@ -1,23 +1,62 @@
-// ================= ডাটাবেস ও ইনিশিয়ালাইজেশন =================
-let products = JSON.parse(localStorage.getItem('luvella_products')) || [];
+// ================= ১. আপনার আসল Firebase কনফিগারেশন =================
+const firebaseConfig = {
+    apiKey: "AIzaSyCLUUQw6uLqGP-8RSRDUsGKTFi1wYnyM3A",
+    authDomain: "://firebaseapp.com",
+    projectId: "luvella-avenue-smo",
+    storageBucket: "luvella-avenue-smo.firebasestorage.app",
+    messagingSenderId: "781504317828",
+    appId: "1:781504317828:web:12d81b3ba4b591fe89f5d1",
+    measurementId: "G-17C1FDHR94"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const productsRef = db.collection("products");
+
+// ================= ২. গ্লোবাল ভেরিয়েবল ও অ্যাডমিন পিন =================
+let products = [];
 let cart = JSON.parse(localStorage.getItem('luvella_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('luvella_wishlist')) || [];
-
-// অ্যাডমিন প্যানেলের গোপন পাসওয়ার্ড/পিন (আপনি চাইলে এটি পরিবর্তন করতে পারেন)
 const ADMIN_PIN = "1234";
 
-// পেজ লোড হলে সবকিছু চালু হবে
 document.addEventListener('DOMContentLoaded', () => {
-    renderProducts(products);
+    listenToLiveProducts();
     updateCounters();
 });
 
-// ================= প্রোডাক্ট ডিসপ্লে ফাংশন =================
+// ================= ৩. লাইভ ডাটাবেস থেকে প্রোডাক্ট আনা =================
+function listenToLiveProducts() {
+    const grid = document.getElementById('productGrid');
+    if (grid) {
+        grid.innerHTML = `<div class="empty-state">প্রোডাক্ট লোড হচ্ছে...</div>`;
+    }
+
+    productsRef.orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+        products = [];
+        snapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        renderProducts(products);
+        renderAdminProducts();
+    }, (error) => {
+        console.error("ডাটা লোড সমস্যা:", error);
+        if (grid) {
+            grid.innerHTML = `<div class="empty-state">প্রোডাক্ট লোড হতে সমস্যা হচ্ছে। ইন্টারনেট চেক করুন।</div>`;
+        }
+    });
+}
+
+// ================= ৪. প্রোডাক্ট ডিসপ্লে ফাংশন =================
 function renderProducts(productList) {
     const grid = document.getElementById('productGrid');
     const countLabel = document.getElementById('totalProductCount');
-    
-    countLabel.innerText = `${productList.length}টি প্রোডাক্ট`;
+    if (!grid) return;
+
+    if (countLabel) {
+        countLabel.innerText = `${productList.length}টি প্রোডাক্ট`;
+    }
     grid.innerHTML = '';
 
     if (productList.length === 0) {
@@ -28,29 +67,30 @@ function renderProducts(productList) {
     productList.forEach(product => {
         const isWished = wishlist.some(item => item.id === product.id);
         const heartIcon = isWished ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+        const isOutOfStock = product.stock === 'Stock Out';
 
         const card = document.createElement('div');
         card.className = 'product-card';
         card.innerHTML = `
             <div class="prod-img-wrap">
                 <img src="${product.image}" alt="${product.name}" onerror="this.src='https://placeholder.com'">
-                <button class="wish-icon-btn" onclick="toggleWishlist(${product.id})" title="উইশলিস্টে রাখুন">
+                <button class="wish-icon-btn" onclick="toggleWishlist('${product.id}')" title="উইশলিস্টে রাখুন">
                     <i class="${heartIcon}"></i>
                 </button>
             </div>
             <div class="prod-info">
-                <span class="prod-cat">${product.category}</span>
+                <span class="prod-cat">${product.category} ${isOutOfStock ? '• <span style="color:red;">Stock Out</span>' : ''}</span>
                 <h3 class="prod-title">${product.name}</h3>
                 <div class="prod-price-row">
                     <span class="current-price">${product.price}৳</span>
                     ${product.oldPrice ? `<span class="old-price">${product.oldPrice}৳</span>` : ''}
                 </div>
                 <div class="prod-actions">
-                    <button class="btn-add-cart" onclick="addToCart(${product.id})">
-                        <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                    <button class="btn-add-cart" onclick="addToCart('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>
+                        Add to Cart
                     </button>
-                    <button class="btn-order-now" onclick="orderNow(${product.id})">
-                        Order Now
+                    <button class="btn-order-now" onclick="orderNow('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>
+                        ${isOutOfStock ? 'স্টক শেষ' : 'Order Now'}
                     </button>
                 </div>
             </div>
@@ -59,7 +99,7 @@ function renderProducts(productList) {
     });
 }
 
-// ================= ক্যাটাগরি ফিল্টার ও সার্চ =================
+// ================= ৫. ক্যাটাগরি ফিল্টার ও সার্চ =================
 function filterCategory(category, btnElement = null) {
     if (btnElement) {
         document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
@@ -68,28 +108,46 @@ function filterCategory(category, btnElement = null) {
 
     const titleEl = document.getElementById('sectionTitle');
     if (category === 'all') {
-        titleEl.innerText = 'আমাদের সেরা কালেকশন';
+        if (titleEl) titleEl.innerText = 'আমাদের সেরা কালেকশন';
         renderProducts(products);
     } else {
-        titleEl.innerText = category;
+        if (titleEl) titleEl.innerText = category;
         const filtered = products.filter(p => p.category === category);
         renderProducts(filtered);
     }
 }
 
 function searchProducts() {
-    const query = document.getElementById('searchInput').value.toLowerCase().trim();
-    document.getElementById('clearSearchBtn').style.display = query.length > 0 ? 'flex' : 'none';
+    const input = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const query = input.value.toLowerCase().trim();
 
-    const filtered = products.filter(p => 
-        p.name.toLowerCase().includes(query) || 
+    if (clearBtn) {
+        clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
+    }
+
+    const filtered = products.filter(p =>
+        p.name.toLowerCase().includes(query) ||
         p.category.toLowerCase().includes(query)
     );
-    document.getElementById('sectionTitle').innerText = query ? `সার্চ ফলাফল: "${query}"` : 'আমাদের সেরা কালেকশন';
+    const titleEl = document.getElementById('sectionTitle');
+    if (titleEl) {
+        titleEl.innerText = query ? `সার্চ ফলাফল: "${query}"` : 'আমাদের সেরা কালেকশন';
+    }
     renderProducts(filtered);
 }
 
-// ================= কার্ট (Add to Cart & Order Now) =================
+function clearSearch() {
+    const input = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    const titleEl = document.getElementById('sectionTitle');
+    if (titleEl) titleEl.innerText = 'আমাদের সেরা কালেকশন';
+    renderProducts(products);
+}
+
+// ================= ৬. কার্ট (Add to Cart & Order Now) =================
 function addToCart(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -98,10 +156,10 @@ function addToCart(productId) {
     if (existingItem) {
         existingItem.qty += 1;
     } else {
-        cart.push({ ...product, qty: 1 });
+        cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
     }
 
-    saveAndRefresh();
+    saveCartAndWishlist();
     alert(`"${product.name}" আপনার শপিং ব্যাগে যোগ হয়েছে!`);
 }
 
@@ -111,8 +169,8 @@ function orderNow(productId) {
 
     const existingItem = cart.find(item => item.id === productId);
     if (!existingItem) {
-        cart.push({ ...product, qty: 1 });
-        saveAndRefresh();
+        cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+        saveCartAndWishlist();
     }
     openModal('cartModal');
 }
@@ -125,22 +183,22 @@ function updateCartQty(productId, change) {
     if (item.qty <= 0) {
         cart = cart.filter(i => i.id !== productId);
     }
-    saveAndRefresh();
+    saveCartAndWishlist();
     renderCartModal();
 }
-
 function renderCartModal() {
     const container = document.getElementById('cartItemsContainer');
     const summary = document.getElementById('cartSummary');
     const totalEl = document.getElementById('cartTotalAmount');
+    if (!container) return;
 
     if (cart.length === 0) {
         container.innerHTML = `<p class="empty-msg" style="text-align:center; padding:20px; color:#7a666e;">আপনার শপিং ব্যাগটি বর্তমানে খালি।</p>`;
-        summary.style.display = 'none';
+        if (summary) summary.style.display = 'none';
         return;
     }
 
-    summary.style.display = 'block';
+    if (summary) summary.style.display = 'block';
     container.innerHTML = '';
     let total = 0;
 
@@ -155,17 +213,18 @@ function renderCartModal() {
                     <small>${item.price}৳ x ${item.qty} = ${itemTotal}৳</small>
                 </div>
                 <div style="display:flex; align-items:center; gap:6px;">
-                    <button onclick="updateCartQty(${item.id}, -1)" style="padding:2px 8px; cursor:pointer;">-</button>
+                    <button onclick="updateCartQty('${item.id}', -1)" style="padding:2px 8px; cursor:pointer;">-</button>
                     <span>${item.qty}</span>
-                    <button onclick="updateCartQty(${item.id}, 1)" style="padding:2px 8px; cursor:pointer;">+</button>
+                    <button onclick="updateCartQty('${item.id}', 1)" style="padding:2px 8px; cursor:pointer;">+</button>
                 </div>
             </div>
         `;
     });
 
-    totalEl.innerText = `${total}৳`;
+    if (totalEl) totalEl.innerText = `${total}৳`;
 }
-// ================= হোয়াটসঅ্যাপ অর্ডার ও ট্র্যাকিং =================
+
+// ================= ৭. হোয়াটসঅ্যাপ অর্ডার ও ট্র্যাকিং =================
 function checkoutViaWhatsApp() {
     if (cart.length === 0) return;
 
@@ -201,9 +260,8 @@ function checkoutViaWhatsApp() {
     const encodedMsg = encodeURIComponent(orderDetails);
     const whatsappUrl = `https://wa.me{waNumber}?text=${encodedMsg}`;
 
-    // অর্ডার পাঠানোর পর কার্ট খালি করা
     cart = [];
-    saveAndRefresh();
+    saveCartAndWishlist();
     closeModal('cartModal');
 
     window.open(whatsappUrl, '_blank');
@@ -219,7 +277,7 @@ function trackOrderWhatsApp() {
     window.open(`https://wa.me{msg}`, '_blank');
 }
 
-// ================= উইশলিস্ট (Wishlist) =================
+// ================= ৮. উইশলিস্ট (Wishlist) =================
 function toggleWishlist(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -228,15 +286,17 @@ function toggleWishlist(productId) {
     if (index > -1) {
         wishlist.splice(index, 1);
     } else {
-        wishlist.push(product);
+        wishlist.push({ id: product.id, name: product.name, price: product.price });
     }
 
-    saveAndRefresh();
+    saveCartAndWishlist();
     renderProducts(products);
 }
 
 function renderWishlistModal() {
     const container = document.getElementById('wishlistItemsContainer');
+    if (!container) return;
+
     if (wishlist.length === 0) {
         container.innerHTML = `<p class="empty-msg" style="text-align:center; padding:20px; color:#7a666e;">উইশলিস্টে কোনো প্রোডাক্ট নেই।</p>`;
         return;
@@ -251,83 +311,25 @@ function renderWishlistModal() {
                     <small style="color:#8c274c; font-weight:bold;">${item.price}৳</small>
                 </div>
                 <div style="display:flex; gap:6px;">
-                    <button class="btn-order-now" style="padding:5px 10px;" onclick="addToCart(${item.id}); closeModal('wishlistModal');">কিনুন</button>
-                    <button class="delete-btn" onclick="toggleWishlist(${item.id}); renderWishlistModal();">বাদ দিন</button>
+                    <button class="btn-order-now" style="padding:5px 10px;" onclick="addToCart('${item.id}'); closeModal('wishlistModal');">কিনুন</button>
+                    <button class="delete-btn" onclick="toggleWishlist('${item.id}'); renderWishlistModal();">বাদ দিন</button>
                 </div>
             </div>
         `;
     });
 }
 
-// ================= অ্যাডমিন প্যানেল (প্রোডাক্ট যোগ ও মুছে ফেলা) =================
+// ================= ৯. SMO বাটন (টিম মেম্বারদের সাথে কল ও হোয়াটসঅ্যাপ যোগাযোগ) =================
 function openAdminPanel() {
-    const pin = prompt("অ্যাডমিন পিন দিন (ডিফল্ট পিন: 1234):");
-    if (pin === ADMIN_PIN) {
-        renderAdminProducts();
-        openModal('adminModal');
-    } else if (pin !== null) {
-        alert("ভুল পিন দিয়েছেন!");
-    }
-}
-
-function addNewProduct(event) {
-    event.preventDefault();
-
-    const name = document.getElementById('prodName').value.trim();
-    const price = Number(document.getElementById('prodPrice').value);
-    const oldPrice = document.getElementById('prodOldPrice').value ? Number(document.getElementById('prodOldPrice').value) : null;
-    const category = document.getElementById('prodCategory').value;
-    const image = document.getElementById('prodImage').value.trim();
-
-    const newProduct = {
-        id: Date.now(),
-        name,
-        price,
-        oldPrice,
-        category,
-        image
-    };
-
-    products.unshift(newProduct);
-    saveAndRefresh();
-    renderProducts(products);
-    renderAdminProducts();
-    document.getElementById('addProductForm').reset();
-    alert("নতুন প্রোডাক্ট সফলভাবে যুক্ত হয়েছে!");
-}
-
-function deleteProduct(productId) {
-    if (confirm("আপনি কি নিশ্চিতভাবে এই প্রোডাক্টটি মুছে ফেলতে চান?")) {
-        products = products.filter(p => p.id !== productId);
-        cart = cart.filter(c => c.id !== productId);
-        wishlist = wishlist.filter(w => w.id !== productId);
-        saveAndRefresh();
-        renderProducts(products);
-        renderAdminProducts();
-    }
+    openModal('helpModal');
 }
 
 function renderAdminProducts() {
-    const list = document.getElementById('adminProductList');
-    if (products.length === 0) {
-        list.innerHTML = `<p style="font-size:13px; color:#7a666e;">কোনো প্রোডাক্ট যোগ করা নেই।</p>`;
-        return;
-    }
-
-    list.innerHTML = '';
-    products.forEach(p => {
-        list.innerHTML += `
-            <div class="admin-prod-item">
-                <span><strong>${p.name}</strong> (${p.price}৳)</span>
-                <button class="delete-btn" onclick="deleteProduct(${p.id})">মুছে ফেলুন</button>
-            </div>
-        `;
-    });
+    // আলাদা admin.html থেকে পরিচালিত হচ্ছে
 }
 
-// ================= হেল্পার ও মডাল কন্ট্রোল =================
-function saveAndRefresh() {
-    localStorage.setItem('luvella_products', JSON.stringify(products));
+// ================= ১০. হেল্পার ও মডাল কন্ট্রোল =================
+function saveCartAndWishlist() {
     localStorage.setItem('luvella_cart', JSON.stringify(cart));
     localStorage.setItem('luvella_wishlist', JSON.stringify(wishlist));
     updateCounters();
@@ -335,31 +337,20 @@ function saveAndRefresh() {
 
 function updateCounters() {
     const totalCartItems = cart.reduce((sum, item) => sum + item.qty, 0);
-    document.getElementById('cartCount').innerText = totalCartItems;
-    document.getElementById('wishlistCount').innerText = wishlist.length;
+    const cartEl = document.getElementById('cartCount');
+    const wishEl = document.getElementById('wishlistCount');
+    if (cartEl) cartEl.innerText = totalCartItems;
+    if (wishEl) wishEl.innerText = wishlist.length;
 }
 
 function openModal(modalId) {
     if (modalId === 'cartModal') renderCartModal();
     if (modalId === 'wishlistModal') renderWishlistModal();
-    document.getElementById(modalId).classList.add('show');
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('show');
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('show');
-}
-
-function scrollToCategories() {
-    document.querySelector('.category-section').scrollIntoView({ behavior: 'smooth' });
-}
-
-function scrollToProducts() {
-    document.querySelector('.products-section').scrollIntoView({ behavior: 'smooth' });
-}
-// সার্চ মার্ক ক্লিয়ার করার ফাংশন
-function clearSearch() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('clearSearchBtn').style.display = 'none';
-    document.getElementById('sectionTitle').innerText = 'আমাদের সেরা কালেকশন';
-    renderProducts(products);
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('show');
 }
