@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unlimited Admin Panel - Luvella AVENUE</title>
+    <title>Admin Panel - Luvella AVENUE</title>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         * { box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; margin: 0; padding: 0; }
@@ -47,7 +47,7 @@
         <h3 style="margin-bottom: 8px; color: #8c274c;">অ্যাডমিন ভেরিফিকেশন</h3>
         <input type="password" id="adminPinInput" placeholder="পিন দিন (1234)" style="max-width: 260px; text-align: center; font-size: 16px;">
         <br>
-        <button class="submit-btn" onclick="unlockAdmin()" style="max-width: 260px;">প্রবেশ করুন</button>
+        <button type="button" class="submit-btn" id="loginBtn" style="max-width: 260px;">প্রবেশ করুন</button>
     </div>
 
     <div class="admin-body" id="dashboardSection" style="display: none;">
@@ -58,15 +58,15 @@
             </div>
             <div class="stat-card">
                 <span>সার্ভার:</span>
-                <strong style="font-size: 13px; color: #2a9d8f;">🟢 লাইভ কানেক্টেড</strong>
+                <strong id="serverStatusText" style="font-size: 13px; color: #2a9d8f;">চেক হচ্ছে...</strong>
             </div>
         </div>
 
-        <form id="productForm" onsubmit="saveProduct(event)">
+        <form id="productForm">
             <label>১. প্রোডাক্টের ছবি আপলোড করুন *</label>
-            <div class="upload-area" onclick="document.getElementById('pFile').click()">
+            <div class="upload-area" id="uploadTrigger">
                 <p>📸 গ্যালারি থেকে ছবি সিলেক্ট করুন</p>
-                <input type="file" id="pFile" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                <input type="file" id="pFile" accept="image/*" style="display: none;">
             </div>
             <div id="imagePreviewBox">
                 <img id="previewImg" src="" alt="Preview">
@@ -116,14 +116,20 @@
         </form>
 
         <hr>
-        <input type="text" id="adminSearchInput" onkeyup="filterAdminList()" placeholder="🔍 প্রোডাক্ট খুঁজুন...">
+        <input type="text" id="adminSearchInput" placeholder="🔍 প্রোডাক্ট খুঁজুন...">
         <div id="adminListContainer">লোড হচ্ছে...</div>
     </div>
 </div>
+
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
 
 <script>
+    const ADMIN_PIN = "1234";
+    let db = null;
+    let selectedImageData = "";
+    let allProducts = [];
+
     const firebaseConfig = {
         apiKey: "AIzaSyCLUUQw6uLqGP-8RSRDUsGKTFi1wYnyM3A",
         authDomain: "://firebaseapp.com",
@@ -134,27 +140,42 @@
         measurementId: "G-17C1FDHR94"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+    try {
+        if (typeof firebase !== 'undefined') {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        }
+    } catch (e) {
+        console.error("Firebase init error:", e);
     }
-    const db = firebase.firestore();
 
-    const ADMIN_PIN = "1234";
-    let selectedImageData = "";
-    let allProducts = [];
-
-    function unlockAdmin() {
-        if (document.getElementById('adminPinInput').value === ADMIN_PIN) {
+    // লগইন বাটন ইভেন্ট
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        const pin = document.getElementById('adminPinInput').value.trim();
+        if (pin === ADMIN_PIN) {
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('dashboardSection').style.display = 'block';
+            document.getElementById('serverStatusText').innerText = db ? "🟢 লাইভ ক্লাউড" : "🟡 অফলাইন মোড";
             listenProducts();
         } else {
-            alert("ভুল পিন দিয়েছেন!");
+            alert("ভুল পিন দিয়েছেন! সঠিক পিন দিন।");
         }
-    }
+    });
 
-    function handleImageSelect(event) {
-        const file = event.target.files;
+    // এন্টার চাপলেও লগইন হবে
+    document.getElementById('adminPinInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') document.getElementById('loginBtn').click();
+    });
+
+    // ইমেজ সিলেক্ট ও কম্প্রেশন
+    document.getElementById('uploadTrigger').addEventListener('click', function() {
+        document.getElementById('pFile').click();
+    });
+
+    document.getElementById('pFile').addEventListener('change', function(event) {
+        const file = event.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
@@ -162,7 +183,7 @@
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                const maxW = 450; // আনলিমিটেড প্রোডাক্টের জন্য অপ্টিমাইজড সাইজ
+                const maxW = 450;
                 const scale = maxW / img.width;
                 canvas.width = img.width > maxW ? maxW : img.width;
                 canvas.height = img.width > maxW ? img.height * scale : img.height;
@@ -177,9 +198,10 @@
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
-    }
+    });
 
-    async function saveProduct(e) {
+    // প্রোডাক্ট সেভ ফাংশন
+    document.getElementById('productForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         if (!selectedImageData) {
             alert("দয়া করে একটি ছবি সিলেক্ট করুন!");
@@ -190,17 +212,28 @@
         btn.innerText = "পাবলিশ হচ্ছে...";
         btn.disabled = true;
 
+        const newProd = {
+            name: document.getElementById('pName').value.trim(),
+            price: Number(document.getElementById('pPrice').value),
+            oldPrice: document.getElementById('pOldPrice').value ? Number(document.getElementById('pOldPrice').value) : null,
+            category: document.getElementById('pCategory').value,
+            stock: document.getElementById('pStock').value,
+            description: document.getElementById('pDesc').value.trim(),
+            image: selectedImageData
+        };
+
         try {
-            await db.collection("products").add({
-                name: document.getElementById('pName').value.trim(),
-                price: Number(document.getElementById('pPrice').value),
-                oldPrice: document.getElementById('pOldPrice').value ? Number(document.getElementById('pOldPrice').value) : null,
-                category: document.getElementById('pCategory').value,
-                stock: document.getElementById('pStock').value,
-                description: document.getElementById('pDesc').value.trim(),
-                image: selectedImageData,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            if (db) {
+                await db.collection("products").add({
+                    ...newProd,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                let local = JSON.parse(localStorage.getItem('luvella_products')) || [];
+                local.unshift({ id: Date.now(), ...newProd });
+                localStorage.setItem('luvella_products', JSON.stringify(local));
+                listenProducts();
+            }
 
             document.getElementById('productForm').reset();
             selectedImageData = "";
@@ -212,22 +245,27 @@
 
         btn.innerText = "+ ওয়েবসাইটে প্রোডাক্ট পাবলিশ করুন";
         btn.disabled = false;
-    }
+    });
 
     function listenProducts() {
-        db.collection("products").orderBy("createdAt", "desc").onSnapshot(snap => {
-            allProducts = [];
-            snap.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
+        if (db) {
+            db.collection("products").orderBy("createdAt", "desc").onSnapshot(snap => {
+                allProducts = [];
+                snap.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
+                renderList(allProducts);
+            }, err => {
+                document.getElementById('adminListContainer').innerHTML = `<p style="color:red;">ডাটাবেস এরর: ${err.message}</p>`;
+            });
+        } else {
+            allProducts = JSON.parse(localStorage.getItem('luvella_products')) || [];
             renderList(allProducts);
-        }, err => {
-            document.getElementById('adminListContainer').innerHTML = `<p style="color:red;">ডাটাবেস পারমিশন চেক করুন: ${err.message}</p>`;
-        });
+        }
     }
 
-    function filterAdminList() {
-        const q = document.getElementById('adminSearchInput').value.toLowerCase();
+    document.getElementById('adminSearchInput').addEventListener('keyup', function() {
+        const q = this.value.toLowerCase();
         renderList(allProducts.filter(p => p.name.toLowerCase().includes(q)));
-    }
+    });
 
     function renderList(list) {
         const box = document.getElementById('adminListContainer');
@@ -256,8 +294,14 @@
     }
 
     async function removeProduct(id) {
-        if (confirm("নিশ্চিতভাবে মুছে ফেলতে চান?")) {
+        if (!confirm("নিশ্চিতভাবে মুছে ফেলতে চান?")) return;
+        if (db) {
             await db.collection("products").doc(id).delete();
+        } else {
+            let local = JSON.parse(localStorage.getItem('luvella_products')) || [];
+            local = local.filter(p => String(p.id) !== String(id));
+            localStorage.setItem('luvella_products', JSON.stringify(local));
+            listenProducts();
         }
     }
 </script>
