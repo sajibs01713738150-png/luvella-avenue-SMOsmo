@@ -649,3 +649,47 @@ body {
     border: none;
     border-top: 1px solid var(--border-soft);
 }
+/* নতুন 3D লোগো ও সার্চ মার্ক স্টাইল */
+.logo-icon-3d {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(145deg, #a6325c, #731c3c);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 5px 10px rgba(110, 28, 58, 0.35), inset 0 2px 4px rgba(255, 255, 255, 0.45);
+}
+
+.search-prefix-mark {
+    color: var(--primary-maroon);
+    font-size: 13px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.clear-search-btn {
+    background: #f5e6eb;
+    border: none;
+    color: var(--primary-maroon);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+body {
+    padding-bottom: 0 !important;
+}
+
+.floating-help-btn {
+    bottom: 58px !important;
+}

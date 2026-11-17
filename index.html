@@ -19,9 +19,12 @@
     <header class="main-header">
         <div class="header-container">
             <div class="logo-area" onclick="filterCategory('all')">
-                <div class="logo-icon">
-                    <i class="fa-solid fa-bow-tie"></i>
-                </div>
+               <div class="logo-icon-3d">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <path d="M12 10.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-3.5 1.5c-2.5-2.2-5.5-3.2-6.5-1.5-1 1.7 1.2 4.8 4.2 5.2 1.3.2 2.4-.3 3.1-1.1-.5-.7-.8-1.6-.8-2.6zm7 0c0 1-.3 1.9-.8 2.6.7.8 1.8 1.3 3.1 1.1 3-.4 5.2-3.5 4.2-5.2-1-1.7-4-.7-6.5 1.5z"/>
+    </svg>
+</div>
+
                 <div class="logo-text">
                     <h1>Luvella</h1>
                     <span>AVENUE</span>
@@ -44,8 +47,27 @@
         </div>
 
         <div class="search-container">
+            <div class="search-container">
+    <span class="search-prefix-mark"><i class="fa-solid fa-sparkles"></i></span>
+    <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="পছন্দের প্রোডাক্ট খুঁজুন (যেমন: ঘড়ি, ব্যাগ, কসমেটিকস...)">
+    <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+    <button class="search-btn" onclick="searchProducts()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+</div>
+
             <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="পছন্দের প্রোডাক্ট খুঁজুন (যেমন: ঘড়ি, ব্যাগ, কসমেটিকস...)">
+            <div class="search-container">
+    <span class="search-prefix-mark"><i class="fa-solid fa-sparkles"></i></span>
+    <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="পছন্দের প্রোডাক্ট খুঁজুন (যেমন: ঘড়ি, ব্যাগ, কসমেটিকস...)">
+    <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+    <button class="search-btn" onclick="searchProducts()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+</div>
+
             <button class="search-btn" onclick="searchProducts()">
+
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
         </div>
@@ -95,24 +117,7 @@
     </button>
 
     <!-- বটম নেভিগেশন বার -->
-    <nav class="bottom-nav">
-        <a href="javascript:void(0)" class="nav-item active" onclick="filterCategory('all')">
-            <i class="fa-solid fa-house"></i>
-            <span>হোম</span>
-        </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="scrollToCategories()">
-            <i class="fa-solid fa-layer-group"></i>
-            <span>ক্যাটাগরি</span>
-        </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="scrollToProducts()">
-            <i class="fa-solid fa-store"></i>
-            <span>শপ</span>
-        </a>
-        <a href="javascript:void(0)" class="nav-item" onclick="openModal('cartModal')">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>ব্যাগ</span>
-        </a>
-    </nav>
+   
 
     <!-- ১. হেল্প মডাল -->
     <div class="modal" id="helpModal">
@@ -259,6 +264,15 @@
     </div>
 
     <!-- Custom JavaScript File -->
+         <!-- Firebase SDK (লাইভ ডাটাবেসের জন্য) -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
+    <!-- Custom JavaScript File -->
+    <script src="script.js"></script>
+</body>
+</html>
+
     <script src="script.js"></script>
 </body>
 </html>

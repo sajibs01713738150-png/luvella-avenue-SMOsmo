@@ -79,6 +79,8 @@ function filterCategory(category, btnElement = null) {
 
 function searchProducts() {
     const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    document.getElementById('clearSearchBtn').style.display = query.length > 0 ? 'flex' : 'none';
+
     const filtered = products.filter(p => 
         p.name.toLowerCase().includes(query) || 
         p.category.toLowerCase().includes(query)
@@ -353,4 +355,11 @@ function scrollToCategories() {
 
 function scrollToProducts() {
     document.querySelector('.products-section').scrollIntoView({ behavior: 'smooth' });
+}
+// সার্চ মার্ক ক্লিয়ার করার ফাংশন
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('clearSearchBtn').style.display = 'none';
+    document.getElementById('sectionTitle').innerText = 'আমাদের সেরা কালেকশন';
+    renderProducts(products);
 }
