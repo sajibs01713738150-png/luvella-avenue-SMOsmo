@@ -693,3 +693,57 @@ body {
 .floating-help-btn {
     bottom: 58px !important;
 }
+/* ================= স্ক্রিন ফিক্স, ২ লাইন ক্যাটাগরি ও Help বাটন ================= */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.search-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.search-container input {
+    width: 100%;
+    min-width: 0;
+}
+
+.search-btn {
+    flex-shrink: 0;
+}
+
+/* ক্যাটাগরি বাটনগুলো ২ লাইনে রাখার জন্য */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.cat-btn {
+    padding: 8px 6px;
+    font-size: 12.5px;
+    white-space: nowrap;
+    text-align: center;
+    width: 100%;
+}
+
+.special-btn {
+    width: auto;
+    padding: 8px 24px;
+}
+
+/* Help বাটন একদম নিচে ডান কোনায় রাখার জন্য */
+.floating-help-btn {
+    bottom: 18px !important;
+    right: calc(50% - 225px);
+}
+
+@media (max-width: 480px) {
+    .floating-help-btn {
+        right: 15px !important;
+        bottom: 18px !important;
+    }
+}

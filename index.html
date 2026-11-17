@@ -16,59 +16,51 @@
     </div>
 
     <!-- মেইন হেডার -->
+   
+    <!-- মেইন হেডার -->
     <header class="main-header">
         <div class="header-container">
+            <!-- হালকা 3D ব্র্যান্ড লোগো -->
             <div class="logo-area" onclick="filterCategory('all')">
-               <div class="logo-icon-3d">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-        <path d="M12 10.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-3.5 1.5c-2.5-2.2-5.5-3.2-6.5-1.5-1 1.7 1.2 4.8 4.2 5.2 1.3.2 2.4-.3 3.1-1.1-.5-.7-.8-1.6-.8-2.6zm7 0c0 1-.3 1.9-.8 2.6.7.8 1.8 1.3 3.1 1.1 3-.4 5.2-3.5 4.2-5.2-1-1.7-4-.7-6.5 1.5z"/>
-    </svg>
-</div>
-
+                <div class="logo-icon-3d">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="#ffffff">
+                        <path d="M12 9.5c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5zm-3.8 1.2C5.5 8.2 2.2 7.1 1.1 9c-1.1 1.9 1.3 5.4 4.7 5.8 1.5.2 2.7-.4 3.5-1.3-.6-.8-.9-1.8-.9-2.8h-.2zm7.6 0c0 1-.3 2-.9 2.8.8.9 2 1.5 3.5 1.3 3.4-.4 5.8-3.9 4.7-5.8-1.1-1.9-4.4-.8-7.1 1.7h-.2z"/>
+                    </svg>
+                </div>
                 <div class="logo-text">
                     <h1>Luvella</h1>
                     <span>AVENUE</span>
                 </div>
             </div>
 
+            <!-- ডানপাশের অ্যাকশন বাটনসমূহ -->
             <div class="header-actions">
                 <button class="track-btn" onclick="openModal('trackModal')">
                     📦 ট্র্যাক
                 </button>
                 <div class="icon-badge" onclick="openModal('wishlistModal')">
-                    <i class="fa-regular fa-heart"></i>
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
                     <span class="badge" id="wishlistCount">0</span>
                 </div>
                 <div class="icon-badge" onclick="openModal('cartModal')">
-                    <i class="fa-solid fa-bag-shopping"></i>
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
                     <span class="badge" id="cartCount">0</span>
                 </div>
             </div>
         </div>
 
+        <!-- একক ও নিখুঁত সার্চ বার -->
         <div class="search-container">
-            <div class="search-container">
-    <span class="search-prefix-mark"><i class="fa-solid fa-sparkles"></i></span>
-    <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="পছন্দের প্রোডাক্ট খুঁজুন (যেমন: ঘড়ি, ব্যাগ, কসমেটিকস...)">
-    <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
-    <button class="search-btn" onclick="searchProducts()">
-        <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
-</div>
-
             <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="পছন্দের প্রোডাক্ট খুঁজুন (যেমন: ঘড়ি, ব্যাগ, কসমেটিকস...)">
-            <div class="search-container">
-    <span class="search-prefix-mark"><i class="fa-solid fa-sparkles"></i></span>
-    <input type="text" id="searchInput" onkeyup="searchProducts()" placeholder="পছন্দের প্রোডাক্ট খুঁজুন (যেমন: ঘড়ি, ব্যাগ, কসমেটিকস...)">
-    <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
-    <button class="search-btn" onclick="searchProducts()">
-        <i class="fa-solid fa-magnifying-glass"></i>
-    </button>
-</div>
-
-            <button class="search-btn" onclick="searchProducts()">
-
-                <i class="fa-solid fa-magnifying-glass"></i>
+            <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;">✕</button>
+            <button class="search-btn" onclick="searchProducts()" title="সার্চ করুন">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
             </button>
         </div>
     </header>
@@ -111,10 +103,13 @@
     </footer>
 
     <!-- ফ্লোটিং হেল্প বাটন -->
-    <button class="floating-help-btn" onclick="openModal('helpModal')">
-        <i class="fa-solid fa-headset"></i>
+      <button class="floating-help-btn" onclick="openModal('helpModal')">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ffffff" stroke-width="2">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+        </svg>
         <span>Help</span>
     </button>
+
 
     <!-- বটম নেভিগেশন বার -->
    
