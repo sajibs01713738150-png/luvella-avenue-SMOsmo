@@ -1,54 +1,24 @@
-// ================= ১. আপনার আসল Firebase কনফিগারেশন =================
-const firebaseConfig = {
-    apiKey: "AIzaSyCLUUQw6uLqGP-8RSRDUsGKTFi1wYnyM3A",
-    authDomain: "://firebaseapp.com",
-    projectId: "luvella-avenue-smo",
-    storageBucket: "luvella-avenue-smo.firebasestorage.app",
-    messagingSenderId: "781504317828",
-    appId: "1:781504317828:web:12d81b3ba4b591fe89f5d1",
-    measurementId: "G-17C1FDHR94"
-};
+// ================= ১. আপনার প্রোডাক্টের তালিকা =================
+let products = [
+    {
+        id: "1",
+        name: "Ladies Stylish Premium Hoodie",
+        price: 549,
+        oldPrice: 750,
+        category: "স্পেশাল অফার",
+        image: "images/hoodie.jpg"
+    }
+];
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
-const productsRef = db.collection("products");
-
-// ================= ২. গ্লোবাল ভেরিয়েবল ও অ্যাডমিন পিন =================
-let products = [];
 let cart = JSON.parse(localStorage.getItem('luvella_cart')) || [];
 let wishlist = JSON.parse(localStorage.getItem('luvella_wishlist')) || [];
-const ADMIN_PIN = "1234";
 
 document.addEventListener('DOMContentLoaded', () => {
-    listenToLiveProducts();
+    renderProducts(products);
     updateCounters();
 });
 
-// ================= ৩. লাইভ ডাটাবেস থেকে প্রোডাক্ট আনা =================
-function listenToLiveProducts() {
-    const grid = document.getElementById('productGrid');
-    if (grid) {
-        grid.innerHTML = `<div class="empty-state">প্রোডাক্ট লোড হচ্ছে...</div>`;
-    }
-
-    productsRef.orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-        products = [];
-        snapshot.forEach((doc) => {
-            products.push({ id: doc.id, ...doc.data() });
-        });
-        renderProducts(products);
-        renderAdminProducts();
-    }, (error) => {
-        console.error("ডাটা লোড সমস্যা:", error);
-        if (grid) {
-            grid.innerHTML = `<div class="empty-state">প্রোডাক্ট লোড হতে সমস্যা হচ্ছে। ইন্টারনেট চেক করুন।</div>`;
-        }
-    });
-}
-
-// ================= ৪. প্রোডাক্ট ডিসপ্লে ফাংশন =================
+// ================= ২. প্রোডাক্ট ডিসপ্লে ফাংশন =================
 function renderProducts(productList) {
     const grid = document.getElementById('productGrid');
     const countLabel = document.getElementById('totalProductCount');
@@ -66,8 +36,8 @@ function renderProducts(productList) {
 
     productList.forEach(product => {
         const isWished = wishlist.some(item => item.id === product.id);
-        const heartIcon = isWished ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        const isOutOfStock = product.stock === 'Stock Out';
+        const heartColor = isWished ? '#e63946' : '#8c274c';
+        const heartFill = isWished ? '#e63946' : 'none';
 
         const card = document.createElement('div');
         card.className = 'product-card';
@@ -75,23 +45,21 @@ function renderProducts(productList) {
             <div class="prod-img-wrap">
                 <img src="${product.image}" alt="${product.name}" onerror="this.src='https://placeholder.com'">
                 <button class="wish-icon-btn" onclick="toggleWishlist('${product.id}')" title="উইশলিস্টে রাখুন">
-                    <i class="${heartIcon}"></i>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="${heartFill}" stroke="${heartColor}" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
                 </button>
             </div>
             <div class="prod-info">
-                <span class="prod-cat">${product.category} ${isOutOfStock ? '• <span style="color:red;">Stock Out</span>' : ''}</span>
+                <span class="prod-cat">${product.category}</span>
                 <h3 class="prod-title">${product.name}</h3>
                 <div class="prod-price-row">
                     <span class="current-price">${product.price}৳</span>
                     ${product.oldPrice ? `<span class="old-price">${product.oldPrice}৳</span>` : ''}
                 </div>
                 <div class="prod-actions">
-                    <button class="btn-add-cart" onclick="addToCart('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>
-                        Add to Cart
-                    </button>
-                    <button class="btn-order-now" onclick="orderNow('${product.id}')" ${isOutOfStock ? 'disabled' : ''}>
-                        ${isOutOfStock ? 'স্টক শেষ' : 'Order Now'}
-                    </button>
+                    <button class="btn-add-cart" onclick="addToCart('${product.id}')">Add to Cart</button>
+                    <button class="btn-order-now" onclick="orderNow('${product.id}')">Order Now</button>
                 </div>
             </div>
         `;
@@ -99,7 +67,7 @@ function renderProducts(productList) {
     });
 }
 
-// ================= ৫. ক্যাটাগরি ফিল্টার ও সার্চ =================
+// ================= ৩. ক্যাটাগরি ফিল্টার ও সার্চ =================
 function filterCategory(category, btnElement = null) {
     if (btnElement) {
         document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
@@ -147,7 +115,7 @@ function clearSearch() {
     renderProducts(products);
 }
 
-// ================= ৬. কার্ট (Add to Cart & Order Now) =================
+// ================= ৪. কার্ট (Add to Cart & Order Now) =================
 function addToCart(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -224,7 +192,7 @@ function renderCartModal() {
     if (totalEl) totalEl.innerText = `${total}৳`;
 }
 
-// ================= ৭. হোয়াটসঅ্যাপ অর্ডার ও ট্র্যাকিং =================
+// ================= ৫. হোয়াটসঅ্যাপ অর্ডার ও ট্র্যাকিং =================
 function checkoutViaWhatsApp() {
     if (cart.length === 0) return;
 
@@ -277,7 +245,7 @@ function trackOrderWhatsApp() {
     window.open(`https://wa.me{msg}`, '_blank');
 }
 
-// ================= ৮. উইশলিস্ট (Wishlist) =================
+// ================= ৬. উইশলিস্ট (Wishlist) =================
 function toggleWishlist(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -319,16 +287,12 @@ function renderWishlistModal() {
     });
 }
 
-// ================= ৯. SMO বাটন (টিম মেম্বারদের সাথে কল ও হোয়াটসঅ্যাপ যোগাযোগ) =================
+// ================= ৭. SMO বাটন (টিম মেম্বারদের সাথে কল ও হোয়াটসঅ্যাপ যোগাযোগ) =================
 function openAdminPanel() {
     openModal('helpModal');
 }
 
-function renderAdminProducts() {
-    // আলাদা admin.html থেকে পরিচালিত হচ্ছে
-}
-
-// ================= ১০. হেল্পার ও মডাল কন্ট্রোল =================
+// ================= ৮. হেল্পার ও মডাল কন্ট্রোল =================
 function saveCartAndWishlist() {
     localStorage.setItem('luvella_cart', JSON.stringify(cart));
     localStorage.setItem('luvella_wishlist', JSON.stringify(wishlist));
